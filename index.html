@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hasmika Kesineni — Portfolio</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet" />
+
+  <!-- DOMPurify for XSS prevention -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* ── CSS Variables ─────────────────────────────── */
+    :root {
+      --green:       #1db954; /* Khan Academy-inspired green */
+      --green-dark:  #14a84a;
+      --green-pale:  #e8f9ee;
+      --green-mid:   #b8f0cc;
+      --ink:         #1a1a1a;
+      --ink-soft:    #4a4a4a;
+      --ink-muted:   #8a8a8a;
+      --surface:     #ffffff;
+      --surface-2:   #f7faf8;
+      --border:      #e2ede6;
+      --radius:      12px;
+      --radius-lg:   20px;
+      --font-display: 'DM Serif Display', Georgia, serif;
+      --font-body:    'DM Sans', system-ui, sans-serif;
+      --transition:   0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ── Reset ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: var(--font-body);
+      color: var(--ink);
+      background: var(--surface);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    ul { list-style: none; }
+
+    /* ── Utility ───────────────────────────────────── */
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 2rem; }
+    .tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      background: var(--green-pale);
+      color: var(--green-dark);
+    }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+    /* ── Nav ───────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      color: var(--ink);
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .nav-logo span {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--ink-soft);
+      transition: color var(--transition);
+    }
+    .nav-links a:hover { color: var(--green-dark); }
+
+    /* ── Hero ──────────────────────────────────────── */
+    #hero {
+      padding: 7rem 0 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 70% 60% at 80% 20%, var(--green-pale) 0%, transparent 70%);
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 680px; }
+    .hero-eyebrow {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .hero-eyebrow-line {
+      width: 32px; height: 2px;
+      background: var(--green);
+    }
+    .hero-eyebrow span {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--green-dark);
+    }
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 6vw, 4.5rem);
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 1.25rem;
+    }
+    h1 em {
+      font-style: italic;
+      color: var(--green-dark);
+    }
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--ink-soft);
+      line-height: 1.7;
+      max-width: 520px;
+      margin-bottom: 2.25rem;
+    }
+    .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      border: 2px solid transparent;
+    }
+    .btn-primary {
+      background: var(--green);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--green-dark); transform: translateY(-2px); }
+    .btn-secondary {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--ink-soft);
+    }
+    .btn-secondary:hover { border-color: var(--green); color: var(--green-dark); transform: translateY(-2px); }
+    .hero-stats {
+      margin-top: 3.5rem;
+      display: flex; gap: 2.5rem; flex-wrap: wrap;
+    }
+    .stat { }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      margin-top: 0.2rem;
+      font-weight: 500;
+    }
+
+    /* ── Section Base ──────────────────────────────── */
+    section { padding: 5rem 0; }
+    .section-header { margin-bottom: 3rem; }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--green-dark);
+      margin-bottom: 0.6rem;
+    }
+    h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+    .section-sub {
+      font-size: 1rem;
+      color: var(--ink-soft);
+      margin-top: 0.6rem;
+    }
+
+    /* ── About ─────────────────────────────────────── */
+    #about { background: var(--surface-2); }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    .about-text p {
+      color: var(--ink-soft);
+      margin-bottom: 1rem;
+      font-size: 1.0rem;
+      line-height: 1.75;
+    }
+    .about-skills { }
+    .skills-group { margin-bottom: 1.75rem; }
+    .skills-group-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      margin-bottom: 0.75rem;
+    }
+    .skills-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .skill-pill {
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      color: var(--ink-soft);
+      transition: all var(--transition);
+    }
+    .skill-pill:hover {
+      border-color: var(--green);
+      color: var(--green-dark);
+      background: var(--green-pale);
+    }
+
+    /* ── Projects ──────────────────────────────────── */
+    #projects { background: var(--surface); }
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 1.5rem;
+    }
+    .project-card {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      background: var(--surface);
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--green);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform var(--transition);
+    }
+    .project-card:hover { border-color: var(--green-mid); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(29,185,84,0.1); }
+    .project-card:hover::before { transform: scaleX(1); }
+    .project-icon {
+      width: 44px; height: 44px;
+      border-radius: var(--radius);
+      background: var(--green-pale);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      margin-bottom: 1.1rem;
+    }
+    .project-title {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+    .project-desc {
+      font-size: 0.88rem;
+      color: var(--ink-soft);
+      line-height: 1.65;
+      margin-bottom: 1.25rem;
+    }
+    .project-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.25rem; }
+    .project-link {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--green-dark);
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      transition: gap var(--transition);
+    }
+    .project-link:hover { gap: 0.55rem; }
+
+    /* ── Experience ────────────────────────────────── */
+    #experience { background: var(--surface-2); }
+    .timeline { position: relative; padding-left: 1.5rem; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 8px; bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+    .timeline-item {
+      position: relative;
+      padding-bottom: 2.5rem;
+    }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-dot {
+      position: absolute;
+      left: -1.6rem; top: 6px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--green);
+      border: 2px solid var(--surface-2);
+    }
+    .timeline-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .timeline-role {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+    }
+    .timeline-date {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--ink-muted);
+      padding: 0.2rem 0.6rem;
+      background: var(--border);
+      border-radius: 999px;
+    }
+    .timeline-company {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--green-dark);
+      margin-bottom: 0.6rem;
+    }
+    .timeline-desc {
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+      line-height: 1.7;
+    }
+
+    /* ── Contact ───────────────────────────────────── */
+    #contact { background: var(--surface); }
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    .contact-info p {
+      font-size: 1rem;
+      color: var(--ink-soft);
+      line-height: 1.75;
+      margin-bottom: 1.5rem;
+    }
+    .contact-links { display: flex; flex-direction: column; gap: 0.75rem; }
+    .contact-link-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+      transition: color var(--transition);
+    }
+    .contact-link-item:hover { color: var(--green-dark); }
+    .contact-link-icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius);
+      background: var(--green-pale);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    /* Form */
+    .contact-form { display: flex; flex-direction: column; gap: 1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+    .form-group input,
+    .form-group textarea {
+      font-family: var(--font-body);
+      font-size: 0.92rem;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--ink);
+      outline: none;
+      transition: border-color var(--transition);
+      resize: vertical;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus { border-color: var(--green); }
+    .form-group textarea { min-height: 120px; }
+    .form-submit {
+      align-self: flex-start;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      padding: 0.85rem 2rem;
+      border-radius: 999px;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .form-submit:hover { background: var(--green-dark); transform: translateY(-2px); }
+    .form-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    #form-status {
+      font-size: 0.85rem;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius);
+      display: none;
+    }
+    #form-status.success {
+      display: block;
+      background: var(--green-pale);
+      color: var(--green-dark);
+      border: 1px solid var(--green-mid);
+    }
+    #form-status.error {
+      display: block;
+      background: #fff0f0;
+      color: #c0392b;
+      border: 1px solid #f5c6cb;
+    }
+
+    /* ── Footer ────────────────────────────────────── */
+    footer {
+      background: var(--ink);
+      color: rgba(255,255,255,0.5);
+      padding: 2.5rem 0;
+    }
+    .footer-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-logo {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: rgba(255,255,255,0.85);
+    }
+    .footer-copy { font-size: 0.82rem; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.5);
+      transition: color var(--transition);
+    }
+    .footer-links a:hover { color: var(--green); }
+
+    /* ── Scroll Reveal ─────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ── Responsive ────────────────────────────────── */
+    @media (max-width: 768px) {
+      .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .form-row { grid-template-columns: 1fr; }
+      .hero-stats { gap: 1.5rem; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Navigation ── -->
+  <nav>
+    <div class="container nav-inner">
+      <a href="#hero" class="nav-logo">
+        <span></span> Hasmika Kesineni
+      </a>
+      <ul class="nav-links" role="navigation" aria-label="Main navigation">
+        <li><a href="#about">About</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ── Hero ── -->
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-eyebrow">
+          <div class="hero-eyebrow-line"></div>
+          <span>BS/MS Computer Science · Georgia State University</span>
+        </div>
+        <h1>Hi, I'm<br/><em>Hasmika</em><br/>Kesineni.</h1>
+        <p class="hero-sub">
+          BS/MS Computer Science student at Georgia State University (4.0 GPA),
+          specializing in AI &amp; Cloud Computing. I build scalable full-stack systems,
+          LLM-powered pipelines, and real-time AI applications — formerly at Meta and Bank of America.
+        </p>
+        <div class="hero-actions">
+          <a href="#projects" class="btn btn-primary">View My Work →</a>
+          <a href="#contact" class="btn btn-secondary">Get in Touch</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="stat-num">4.0</div>
+            <div class="stat-label">GPA</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">4</div>
+            <div class="stat-label">Internships</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">3×</div>
+            <div class="stat-label">AWS Certified</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">1st</div>
+            <div class="stat-label">NSF Innovation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── About ── -->
+  <section id="about">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">About Me</div>
+        <h2>Builder, researcher,<br/>4.0 student.</h2>
+        <p class="section-sub">A little bit about who I am and what I know.</p>
+      </div>
+      <div class="about-grid">
+        <div class="about-text reveal">
+          <p>
+            I'm Hasmika, a BS/MS Computer Science student at Georgia State University
+            graduating May 2026, concentrating in AI and Cloud Computing. I also studied
+            Computer Vision at Georgia Tech as part of a cross-institutional program.
+          </p>
+          <p>
+            I've interned at Meta building LLM-powered semantic retrieval systems and
+            at Bank of America designing AI-driven anomaly detection for financial infrastructure.
+            I currently do research at Georgia Tech Research Institute on real-time computer vision pipelines.
+          </p>
+          <p>
+            I'm an NSF Innovation Challenge 1st-place winner, Atlanta AI Hackathon Best AI Application recipient,
+            and Microsoft Grant Scholar. I hold three AWS certifications and bring both research depth
+            and production engineering experience.
+          </p>
+        </div>
+        <div class="about-skills reveal">
+          <div class="skills-group">
+            <div class="skills-group-title">Languages</div>
+            <div class="skills-pills">
+              <span class="skill-pill">Python</span>
+              <span class="skill-pill">Java</span>
+              <span class="skill-pill">JavaScript</span>
+              <span class="skill-pill">TypeScript</span>
+              <span class="skill-pill">SQL</span>
+              <span class="skill-pill">C++</span>
+            </div>
+          </div>
+          <div class="skills-group">
+            <div class="skills-group-title">Backend & Frontend</div>
+            <div class="skills-pills">
+              <span class="skill-pill">Spring Boot</span>
+              <span class="skill-pill">Node.js</span>
+              <span class="skill-pill">Flask</span>
+              <span class="skill-pill">GraphQL</span>
+              <span class="skill-pill">React</span>
+              <span class="skill-pill">Next.js</span>
+              <span class="skill-pill">Angular</span>
+              <span class="skill-pill">RxJS</span>
+            </div>
+          </div>
+          <div class="skills-group">
+            <div class="skills-group-title">AI / ML</div>
+            <div class="skills-pills">
+              <span class="skill-pill">LLMs & RAG</span>
+              <span class="skill-pill">Embeddings</span>
+              <span class="skill-pill">Pinecone / FAISS</span>
+              <span class="skill-pill">PyTorch</span>
+              <span class="skill-pill">TensorFlow</span>
+              <span class="skill-pill">YOLO / OpenCV</span>
+              <span class="skill-pill">NLP</span>
+            </div>
+          </div>
+          <div class="skills-group">
+            <div class="skills-group-title">Cloud & DevOps</div>
+            <div class="skills-pills">
+              <span class="skill-pill">AWS (EKS, S3, CloudFront)</span>
+              <span class="skill-pill">Kubernetes</span>
+              <span class="skill-pill">Docker</span>
+              <span class="skill-pill">CI/CD</span>
+              <span class="skill-pill">PostgreSQL</span>
+              <span class="skill-pill">MongoDB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Projects ── -->
+  <section id="projects">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Projects</div>
+        <h2>Things I've built.</h2>
+        <p class="section-sub">A selection of personal and academic projects.</p>
+      </div>
+      <div class="projects-grid">
+
+        <div class="project-card reveal">
+          <div class="project-icon">🐝</div>
+          <div class="project-title">BeeCompete</div>
+          <p class="project-desc">
+            NSF Award-winning competitive platform with a scalable Spring Boot + PostgreSQL microservices backend,
+            event-driven React + RxJS frontend, and globally deployed infrastructure on AWS S3 and CloudFront.
+          </p>
+          <div class="project-tags">
+            <span class="tag">Spring Boot</span>
+            <span class="tag">React + RxJS</span>
+            <span class="tag">AWS</span>
+            <span class="tag">PostgreSQL</span>
+          </div>
+          <a href="https://github.com/hasmika123" class="project-link" target="_blank">View on GitHub →</a>
+        </div>
+
+        <div class="project-card reveal">
+          <div class="project-icon">📄</div>
+          <div class="project-title">Work iFence</div>
+          <p class="project-desc">
+            LLM-powered resume optimization platform using NLP and prompt engineering to generate tailored
+            improvements. Semantic matching via embeddings improved job-resume alignment by ~40% across 1K+ resumes.
+          </p>
+          <div class="project-tags">
+            <span class="tag">Flask</span>
+            <span class="tag">OpenAI API</span>
+            <span class="tag">Embeddings</span>
+            <span class="tag">NLP</span>
+          </div>
+          <a href="https://github.com/hasmika123" class="project-link" target="_blank">View on GitHub →</a>
+        </div>
+
+        <div class="project-card reveal">
+          <div class="project-icon">🧠</div>
+          <div class="project-title">Brainwave Analysis App</div>
+          <p class="project-desc">
+            Real-time EEG data pipeline integrating the Muse headband API for cognitive stress evaluation.
+            Features AI-driven analysis workflows, gamified testing, and real-time visualization — built at
+            MORSE Research Lab, GSU.
+          </p>
+          <div class="project-tags">
+            <span class="tag">Muse API</span>
+            <span class="tag">Python</span>
+            <span class="tag">Signal Processing</span>
+            <span class="tag">AI</span>
+          </div>
+          <a href="https://github.com/hasmika123" class="project-link" target="_blank">View on GitHub →</a>
+        </div>
+
+        <div class="project-card reveal">
+          <div class="project-icon">🔐</div>
+          <div class="project-title">This Portfolio</div>
+          <p class="project-desc">
+            Built for a Computer Networking course. Features HTTPS via GitHub Pages, XSS prevention with
+            DOMPurify, dynamic contact form via Supabase, Cloudflare CDN, Google Analytics, GitHub Actions
+            CI/CD, and AI-based intrusion detection.
+          </p>
+          <div class="project-tags">
+            <span class="tag">HTML/CSS</span>
+            <span class="tag">Supabase</span>
+            <span class="tag">GitHub Actions</span>
+            <span class="tag">Claude API</span>
+          </div>
+          <a href="https://github.com/hasmika123" class="project-link" target="_blank">View on GitHub →</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Experience ── -->
+  <section id="experience">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Experience</div>
+        <h2>Where I've worked.</h2>
+      </div>
+      <div class="timeline">
+
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"></div>
+          <div class="timeline-header">
+            <div class="timeline-role">Research Assistant – AI / Computer Vision</div>
+            <div class="timeline-date">Aug 2024 – Present</div>
+          </div>
+          <div class="timeline-company">Georgia Tech Research Institute · Atlanta, GA</div>
+          <p class="timeline-desc">
+            Building real-time video inference pipelines (YOLO, PyTorch, OpenCV) achieving 35+ FPS.
+            Reduced end-to-end inference latency by ~50% via parallelized, multithreaded execution.
+            Architected semantic retrieval systems (embeddings + FAISS/Pinecone) for sub-second search on large datasets.
+          </p>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"></div>
+          <div class="timeline-header">
+            <div class="timeline-role">Software Engineer Intern</div>
+            <div class="timeline-date">May – Aug 2025</div>
+          </div>
+          <div class="timeline-company">Meta · Atlanta, GA</div>
+          <p class="timeline-desc">
+            Architected LLM-powered systems (RAG + embeddings + vector DBs) for real-time semantic retrieval.
+            Scaled distributed GraphQL APIs serving 100K+ daily requests at sub-120ms p95 latency.
+            Led React + Next.js frontend optimizations improving load time by ~40% and Core Web Vitals.
+          </p>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"></div>
+          <div class="timeline-header">
+            <div class="timeline-role">Software Engineer Intern</div>
+            <div class="timeline-date">May – Aug 2024</div>
+          </div>
+          <div class="timeline-company">Bank of America · Atlanta, GA</div>
+          <p class="timeline-desc">
+            Implemented Spring Boot microservices supporting high-volume financial transaction systems.
+            Built AI-driven anomaly detection (time-series, unsupervised ML) identifying latency spikes.
+            Designed low-latency PostgreSQL data layers reducing query response times by ~35%.
+          </p>
+        </div>
+
+        <div class="timeline-item reveal">
+          <div class="timeline-dot"></div>
+          <div class="timeline-header">
+            <div class="timeline-role">Software Engineering Intern</div>
+            <div class="timeline-date">May – Jul 2023</div>
+          </div>
+          <div class="timeline-company">Reliance Industries Limited · Bengaluru, India</div>
+          <p class="timeline-desc">
+            Built predictive analytics pipelines (Python + ML) to forecast equipment failures, reducing downtime by ~15%.
+            Designed real-time IoT monitoring systems (Flask + MQTT) ingesting high-frequency sensor data.
+            Optimized large-scale data workflows, improving dashboard latency by ~30%.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Contact ── -->
+  <section id="contact">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label">Contact</div>
+        <h2>Let's talk.</h2>
+        <p class="section-sub">Open to internships, collaborations, and good conversations.</p>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-info reveal">
+          <p>
+            Whether you have a project in mind, a research collaboration, or a role you think
+            I'd be a great fit for — I'd love to hear from you. I typically respond within 24 hours.
+          </p>
+          <div class="contact-links">
+            <a href="mailto:hasmika123@gmail.com" class="contact-link-item">
+              <div class="contact-link-icon">✉️</div>
+              hasmika123@gmail.com
+            </a>
+            <a href="https://linkedin.com/in/hasmika-kesineni/" class="contact-link-item" target="_blank" rel="noopener noreferrer">
+              <div class="contact-link-icon">💼</div>
+              linkedin.com/in/hasmika-kesineni
+            </a>
+            <a href="https://github.com/hasmika123" class="contact-link-item" target="_blank" rel="noopener noreferrer">
+              <div class="contact-link-icon">🐙</div>
+              github.com/hasmika123
+            </a>
+          </div>
+        </div>
+
+        <!-- Contact Form (XSS-protected + Supabase) -->
+        <div class="reveal">
+          <form class="contact-form" id="contactForm" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" placeholder="Jane Smith" required maxlength="100" />
+              </div>
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="jane@example.com" required maxlength="200" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="subject">Subject</label>
+              <input type="text" id="subject" placeholder="Internship opportunity / Collaboration / Other" maxlength="200" />
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" placeholder="Tell me about your project or inquiry…" required maxlength="2000"></textarea>
+            </div>
+            <div id="form-status" role="alert" aria-live="polite"></div>
+            <button type="submit" class="form-submit" id="submitBtn">
+              <span>Send Message</span> ✦
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <div class="container footer-inner">
+      <div class="footer-logo">Hasmika Kesineni</div>
+      <div class="footer-copy">© 2026 · Built with care & a little CSS magic.</div>
+      <div class="footer-links">
+        <a href="https://github.com/hasmika123" target="_blank">GitHub</a>
+        <a href="https://linkedin.com/in/hasmika-kesineni/" target="_blank">LinkedIn</a>
+        <a href="mailto:hasmika123@gmail.com">Email</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Supabase Init ───────────────────────────────────────────────────────
+    // REPLACE these with your actual Supabase project URL and anon key
+    const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ── Contact Form: XSS Protection + Supabase Submit ─────────────────────
+    document.getElementById('contactForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const btn    = document.getElementById('submitBtn');
+      const status = document.getElementById('form-status');
+
+      // Sanitize all inputs with DOMPurify to prevent XSS
+      const name    = DOMPurify.sanitize(document.getElementById('name').value.trim());
+      const email   = DOMPurify.sanitize(document.getElementById('email').value.trim());
+      const subject = DOMPurify.sanitize(document.getElementById('subject').value.trim());
+      const message = DOMPurify.sanitize(document.getElementById('message').value.trim());
+
+      // Basic validation
+      if (!name || !email || !message) {
+        status.textContent = 'Please fill in your name, email, and message.';
+        status.className = 'error';
+        return;
+      }
+
+      // Simple email format check
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRe.test(email)) {
+        status.textContent = 'Please enter a valid email address.';
+        status.className = 'error';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.querySelector('span').textContent = 'Sending…';
+      status.className = '';
+      status.style.display = 'none';
+
+      try {
+        const { error } = await supabase
+          .from('contact_messages')
+          .insert([{ name, email, subject, message, submitted_at: new Date().toISOString() }]);
+
+        if (error) throw error;
+
+        status.textContent = '✓ Message sent! I\'ll get back to you within 24 hours.';
+        status.className = 'success';
+        document.getElementById('contactForm').reset();
+      } catch (err) {
+        console.error('Supabase error:', err);
+        status.textContent = 'Something went wrong. Please try emailing me directly.';
+        status.className = 'error';
+      } finally {
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Send Message';
+      }
+    });
+
+    // ── Scroll Reveal ───────────────────────────────────────────────────────
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+      el.style.transitionDelay = `${(i % 4) * 0.08}s`;
+      revealObserver.observe(el);
+    });
+
+    // ── Lazy Load Images (future-proofing) ──────────────────────────────────
+    // Any <img> with data-src will be lazy loaded
+    const lazyImages = document.querySelectorAll('img[data-src]');
+    const imgObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          img.src = img.dataset.src;
+          img.removeAttribute('data-src');
+          imgObserver.unobserve(img);
+        }
+      });
+    });
+    lazyImages.forEach(img => imgObserver.observe(img));
+  </script>
+
+  <!-- Google Analytics (replace G-XXXXXXXXXX with your Measurement ID) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+
+</body>
+</html>
