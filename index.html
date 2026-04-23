@@ -836,19 +836,63 @@
   <!-- Supabase CDN (loaded just before use, non-blocking) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  <style>
+    /* ── Toast notification ───────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--ink);
+      color: #fff;
+      padding: 0.85rem 1.75rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 9999;
+      white-space: nowrap;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    #toast .toast-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+  </style>
+
+  <!-- Toast element -->
+  <div id="toast"><span class="toast-dot"></span><span id="toast-msg"></span></div>
+
   <script>
-    // ── Supabase Init (safe — won't crash if keys not yet set) ──────────────
-    // REPLACE these with your actual Supabase project URL and anon key
-    const SUPABASE_URL     = 'https://bfvjtsgracncnwnnvdlw.supabase.co';
+    // ── Toast helper ────────────────────────────────────────────────────────
+    function showToast(msg, duration = 3500) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    // ── Supabase Init (lazy — runs on first submit to guarantee library loaded)
+    const SUPABASE_URL      = 'https://bfvjtsgracncnwnnvdlw.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_I2RrTsXaDdu1gEpP-5MXWA_mVk1mafE';
 
-    let supabaseClient = null;
-    try {
-      if (window.supabase && SUPABASE_URL.includes('supabase.co') && !SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    function getSupabaseClient() {
+      try {
+        return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      } catch (e) {
+        console.error('Supabase failed to initialize:', e);
+        return null;
       }
-    } catch (e) {
-      console.warn('Supabase not initialized — placeholder credentials detected.');
     }
 
     // ── Contact Form: XSS Protection + Supabase Submit ─────────────────────
@@ -884,9 +928,9 @@
       status.className = '';
       status.style.display = 'none';
 
-      if (!supabaseClient) {
-        // Supabase not yet configured — show friendly message
-        status.textContent = '⚠️ Contact form not yet connected. Please email hasmika123@gmail.com directly.';
+      const client = getSupabaseClient();
+      if (!client) {
+        status.textContent = '⚠️ Could not connect. Please email hasmika123@gmail.com directly.';
         status.className = 'error';
         btn.disabled = false;
         btn.querySelector('span').textContent = 'Send Message';
@@ -894,18 +938,17 @@
       }
 
       try {
-        const { error } = await supabaseClient
+        const { error } = await client
           .from('contact_messages')
           .insert([{ name, email, subject, message, submitted_at: new Date().toISOString() }]);
 
         if (error) throw error;
 
-        status.textContent = '✓ Message sent! I\'ll get back to you within 24 hours.';
-        status.className = 'success';
         document.getElementById('contactForm').reset();
+        showToast('Message sent! I\'ll get back to you soon ✦');
       } catch (err) {
         console.error('Supabase error:', err);
-        status.textContent = 'Something went wrong. Please try emailing me directly.';
+        status.textContent = 'Something went wrong. Please email me directly.';
         status.className = 'error';
       } finally {
         btn.disabled = false;
