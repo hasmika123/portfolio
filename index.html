@@ -13,9 +13,6 @@
   <!-- DOMPurify for XSS prevention -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
     /* ── CSS Variables ─────────────────────────────── */
     :root {
@@ -515,11 +512,11 @@
       <div class="hero-content">
         <div class="hero-eyebrow">
           <div class="hero-eyebrow-line"></div>
-          <span>B.S./M.S. Computer Science · Georgia State University</span>
+          <span>BS/MS Computer Science · Georgia State University</span>
         </div>
         <h1>Hi, I'm<br/><em>Hasmika</em><br/>Kesineni.</h1>
         <p class="hero-sub">
-          B.S./M.S. Computer Science student at Georgia State University (4.0 GPA),
+          BS/MS Computer Science student at Georgia State University (4.0 GPA),
           specializing in AI &amp; Cloud Computing. I build scalable full-stack systems,
           LLM-powered pipelines, and real-time AI applications — formerly at Meta and Bank of America.
         </p>
@@ -560,7 +557,7 @@
       <div class="about-grid">
         <div class="about-text reveal">
           <p>
-            I'm Hasmika, a B.S./M.S. Computer Science student at Georgia State University
+            I'm Hasmika, a BS/MS Computer Science student at Georgia State University
             graduating May 2026, concentrating in AI and Cloud Computing. I also studied
             Computer Vision at Georgia Tech as part of a cross-institutional program.
           </p>
@@ -851,12 +848,23 @@
     </div>
   </footer>
 
+  <!-- Supabase CDN (loaded just before use, non-blocking) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
-    // ── Supabase Init ───────────────────────────────────────────────────────
+    // ── Supabase Init (safe — won't crash if keys not yet set) ──────────────
     // REPLACE these with your actual Supabase project URL and anon key
-    const SUPABASE_URL = 'https://bfvjtsgracncnwnnvdlw.supabase.co';
+    const SUPABASE_URL     = 'https://bfvjtsgracncnwnnvdlw.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_I2RrTsXaDdu1gEpP-5MXWA_mVk1mafE';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let supabaseClient = null;
+    try {
+      if (window.supabase && SUPABASE_URL.includes('supabase.co') && !SUPABASE_URL.includes('YOUR_PROJECT_ID')) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch (e) {
+      console.warn('Supabase not initialized — placeholder credentials detected.');
+    }
 
     // ── Contact Form: XSS Protection + Supabase Submit ─────────────────────
     document.getElementById('contactForm').addEventListener('submit', async function(e) {
@@ -891,8 +899,17 @@
       status.className = '';
       status.style.display = 'none';
 
+      if (!supabaseClient) {
+        // Supabase not yet configured — show friendly message
+        status.textContent = '⚠️ Contact form not yet connected. Please email hasmika123@gmail.com directly.';
+        status.className = 'error';
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Send Message';
+        return;
+      }
+
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('contact_messages')
           .insert([{ name, email, subject, message, submitted_at: new Date().toISOString() }]);
 
@@ -927,7 +944,6 @@
     });
 
     // ── Lazy Load Images (future-proofing) ──────────────────────────────────
-    // Any <img> with data-src will be lazy loaded
     const lazyImages = document.querySelectorAll('img[data-src]');
     const imgObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
